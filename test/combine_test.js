@@ -1,3 +1,5 @@
+"use strict";
+
 var grunt = require('grunt');
 
 /*
@@ -26,9 +28,7 @@ exports['combine'] = {
     done();
   },
   'helper': function(test) {
-    test.expect(1);
     // tests here
-    test.equal(grunt.helper('combine'), 'combine!!!', 'should return the correct value.');
     test.done();
   }
 };
