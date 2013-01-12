@@ -1,7 +1,7 @@
 {
   "name": "grunt-combine",
   "description": "Combine files with token based search and replace functionality.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "homepage": "https://github.com/mcgaryes/grunt-combine",
   "author": {
     "name": "Eric McGary",
@@ -29,9 +29,11 @@
   "scripts": {
     "test": "grunt test"
   },
+  "dependencies":{
+    "underscore": "1.4.x"
+  },
   "devDependencies": {
-    "grunt": "~0.3.17",
-    "underscore":"1.4.x"
+    "grunt": "~0.3.17"
   },
   "keywords": [
     "gruntplugin"
