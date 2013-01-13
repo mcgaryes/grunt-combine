@@ -1,6 +1,7 @@
 /*
  * grunt-combine
  * https://github.com/mcgaryes/grunt-combine
+ * https://github.com/gruntjs/grunt/
  *
  * Copyright (c) 2013 Eric McGary
  * Licensed under the MIT license.
@@ -10,19 +11,16 @@
 module.exports = function(grunt) {
 
   "use strict";
-
-  // Please see the grunt documentation for more information regarding task and
-  // helper creation: https://github.com/gruntjs/grunt/blob/master/docs/toc.md
-  
-  // ==========================================================================
-  // TASKS
-  // ==========================================================================
   
   var _ = require("underscore");
   var fs = require('fs');
-
-  var processedIndex = 0;
-  var totalFiles, replacements, token, input, output, done;
+  
+  var starttime = (new Date()).getTime();
+  var processed = 0;
+  var tokens;
+  var input;
+  var output;
+  var done;
 
   /**
    * Main task kick-off functionality 
@@ -34,11 +32,9 @@ module.exports = function(grunt) {
 
     // set out defaults
     done = this.async();
-    token = this.data.token;
     input = this.data.input;
     output = this.data.output;
-    replacements = this.data.replacements;
-    totalFiles = replacements.length;
+    tokens = this.data.tokens;
 
     // check to make sure that we have everything that we need before continuing
     if(_.isUndefined(input) || _.isUndefined(output)) {
@@ -48,15 +44,17 @@ module.exports = function(grunt) {
     // load the input file as text
     fs.readFile(input, 'utf8', function(e, data) {
 
-      if(e) { grunt.fail.warn('There was an error processing the input file.'); }
+      if(e) { 
+        grunt.fail.warn('There was an error processing the input file.'); 
+      }
 
       // run through each of the replacements and load the files if needed. Replace the 
       // replacement with the files contents if it happens to be a file
-      grunt.log.writeln('Processing input file...');
+      grunt.log.writeln('Processing Input: ' + (input).cyan);
       input = data;
 
       // now process all of out replacements
-      processReplacements(replacements);
+      processTokens(tokens);
       
     });
   
@@ -73,24 +71,26 @@ module.exports = function(grunt) {
    * @for grunt-combine
    * @method processReplacements
    */
-  var processReplacements = function(replacements){
+  var processTokens = function(){
 
-    _.each(replacements, function(replacement,index) {
+    _.each(tokens, function(token,index) {
 
         // determain whether or not this is a file reference or a string
-        var suffix = replacement.slice(replacement.length - 3, replacement.length);
-        if(suffix === ".js") {
+        if(token.file) {
 
           // read the file and reset replacement to what was loaded
-          fs.readFile(replacement, 'utf8', function(e, data) {
+          fs.readFile(token.file, 'utf8', function(e, data) {
             if(e) {
-              grunt.fail.warn("There was an error processing the replacement '" + replacement + "' file.");
+              grunt.fail.warn("There was an error processing the replacement '" + token.file + "' file.");
             }
-            grunt.log.writeln("Processing replacement '" + replacement + "' file...");
-            replacements[index] = data;
+            tokens[index].contents = data;
             processCompleteCallback();
           });
 
+        } else if (token.string) {
+          // we didn't need to load a file
+          tokens[index].contents = token.string;
+          processCompleteCallback();
         } else {
           processCompleteCallback();
         }
@@ -106,8 +106,8 @@ module.exports = function(grunt) {
    * @method processCompleteCallback
    */
   var processCompleteCallback = function(){
-    processedIndex++;
-    if(processedIndex === totalFiles) {
+    processed++;
+    if(processed === tokens.length) {
       findAndReplaceTokens();
     }
   };
@@ -120,14 +120,17 @@ module.exports = function(grunt) {
    * @method findAndReplaceTokens
    */
   var findAndReplaceTokens = function(){
-    // run through the document and replace anything we can in the input string
-    grunt.log.writeln('Replacing tokens...');
 
-    _.each(replacements,function(replacement,index){
-      var position = input.search(token);
-      var pre = input.substr(0, position);
-      var post = input.substr(position + token.length, input.length);
-      input = pre + replacement + post;
+    // run through the document and replace anything we can in the input string
+    _.each(tokens,function(token,index){
+      if(token.contents !== undefined ){
+        var position = input.search(token.token);
+        var pre = input.substr(0, position);
+        var post = input.substr(position + token.token.length, input.length);
+        input = pre + token.contents + post;
+      } else {
+          grunt.log.writeln("Replacement failed for token '" + token.token + "'.");
+      }
     });
 
     writeOutput();
@@ -141,12 +144,13 @@ module.exports = function(grunt) {
    */
   var writeOutput = function(){
     // write the input string to the output file name
-    grunt.log.writeln('Writing output file...');
+    grunt.log.writeln('Writing Output: ' + (output).cyan);
     fs.writeFile(output, input, 'utf8', function (err) {
       if (err) {
         grunt.fail.warn("Could not write output '" + output + "' file.");
       }
-      grunt.log.writeln('Completed.');
+      var endtime = (new Date()).getTime();
+      grunt.log.writeln('Combine task completed in ' + ((endtime - starttime) / 1000) + ' seconds');
       done();
     });
   };
