@@ -21,6 +21,7 @@ module.exports = function(grunt) {
   var input;
   var output;
   var done;
+  var timer;
 
   /**
    * Main task kick-off functionality 
@@ -54,12 +55,13 @@ module.exports = function(grunt) {
       input = data;
 
       // now process all of out replacements
+      processed = 0;
       processTokens(tokens);
       
     });
   
     // complete the task
-    setTimeout(function() {
+    timer = setTimeout(function() {
       grunt.fail.warn('The task has timed out.');
     }, 10000);
 
@@ -147,10 +149,12 @@ module.exports = function(grunt) {
     grunt.log.writeln('Writing Output: ' + (output).cyan);
     fs.writeFile(output, input, 'utf8', function (err) {
       if (err) {
+        clearTimeout(timer);
         grunt.fail.warn("Could not write output '" + output + "' file.");
       }
       var endtime = (new Date()).getTime();
       grunt.log.writeln('Combine task completed in ' + ((endtime - starttime) / 1000) + ' seconds');
+      clearTimeout(timer);
       done();
     });
   };
