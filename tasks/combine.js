@@ -54,6 +54,7 @@ module.exports = function(grunt) {
       input = data;
 
       // now process all of out replacements
+      processed = 0;
       processTokens(tokens);
       
     });

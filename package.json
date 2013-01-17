@@ -1,7 +1,7 @@
 {
   "name": "grunt-combine",
   "description": "Token based search and replace functionality for grunt.",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "homepage": "https://github.com/mcgaryes/grunt-combine",
   "author": {
     "name": "Eric McGary",
