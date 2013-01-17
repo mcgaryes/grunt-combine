@@ -55,6 +55,7 @@ module.exports = function(grunt) {
       input = data;
 
       // now process all of out replacements
+      processed = 0;
       processTokens(tokens);
       
     });
@@ -149,12 +150,10 @@ module.exports = function(grunt) {
     fs.writeFile(output, input, 'utf8', function (err) {
       if (err) {
         clearTimeout(timer);
-        processed = 0;
         grunt.fail.warn("Could not write output '" + output + "' file.");
       }
       var endtime = (new Date()).getTime();
       grunt.log.writeln('Combine task completed in ' + ((endtime - starttime) / 1000) + ' seconds');
-      processed = 0;
       clearTimeout(timer);
       done();
     });
