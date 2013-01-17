@@ -60,7 +60,7 @@ module.exports = function(grunt) {
     });
   
     // complete the task
-    setTimeout(function() {
+    timer = setTimeout(function() {
       grunt.fail.warn('The task has timed out.');
     }, 10000);
 
