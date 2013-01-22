@@ -22,6 +22,7 @@ module.exports = function (grunt) {
     var input = [];
     var fileContents = [];
     var output;
+    var outputIsPath;
     var done;
     var timer;
     var cwd;
@@ -34,11 +35,19 @@ module.exports = function (grunt) {
      */
     grunt.registerMultiTask('combine', 'Combine files with token based search and replace functionality.', function () {
 
+        // user input is an array - treat output as a path
+        if (Array.isArray(this.data.input)) {
+            input = this.data.input;
+        }
+        else {
+            input[0] = this.data.input;
+        }
+
         // set out defaults
         done = this.async();
         cwd = this.data.cwd;
-        input = this.data.input;
         output = this.data.output;
+        outputIsPath = output.charAt(output.length - 1) == '/';
         tokens = this.data.tokens;
 
         // load the input file as text
@@ -48,7 +57,7 @@ module.exports = function (grunt) {
                 grunt.fail.warn('You must specify an input/output.');
             }
 
-            var path = cwd + elem;
+            var path = cwd ? cwd + elem : elem;
 
             fs.readFile(path, 'utf8', function (e, data) {
                 if (e) {
@@ -57,6 +66,7 @@ module.exports = function (grunt) {
 
                 // run through each of the replacements and load the files if needed. Replace the
                 // replacement with the files contents if it happens to be a file
+                grunt.log.writeln('Processing Input: ' + (elem).cyan);
                 fileContents[index] = data;
 
                 // now process all of out replacements
@@ -148,7 +158,7 @@ module.exports = function (grunt) {
          * @method findAndReplaceTokens
          */
         var writeOutput = function (inputIndex) {
-            var path = output + input[inputIndex];
+            var path = outputIsPath ? output + input[inputIndex] : output;
             // write the input string to the output file name
             grunt.log.writeln('Writing Output: ' + (path).cyan);
             fs.writeFile(path, fileContents[inputIndex], 'utf8', function (err) {
@@ -157,9 +167,12 @@ module.exports = function (grunt) {
                     grunt.fail.warn("Could not write output '" + output + "' file.");
                 }
                 var endtime = (new Date()).getTime();
+                grunt.log.writeln('Combine task completed in ' + ((endtime - starttime) / 1000) + ' seconds');
                 clearTimeout(timer);
                 processedFiles++;
                 if (processedFiles === fileContents.length) {
+                    processedFiles = 0;
+                    fileContents = [];
                     done();
                 }
             });
