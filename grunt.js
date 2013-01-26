@@ -1,3 +1,6 @@
+/*
+ * grunt-combine
+ */
 module.exports = function(grunt) {
 
   "use strict";
@@ -30,6 +33,27 @@ module.exports = function(grunt) {
         es5: true
       },
       globals: {}
+    },
+    combine: {
+        single: {
+            input: "test/inputs/input_a.txt",
+            output: "test/outputs/output_a.txt",
+            tokens: [{
+                token: "<%!a%>",
+                file: "test/files/fox.txt"
+            }]
+        },
+        multiple: {
+          input: ["test/inputs/input_b.txt","test/inputs/input_c.txt"],
+          output: "test/outputs/",
+          tokens: [{
+           token: "<%!b%>",
+           file: "test/files/fox.txt"
+         },{
+          token: "<%!c%>",
+          string: "hairy walrus"
+        }]
+      }
     }
   });
 
@@ -37,6 +61,6 @@ module.exports = function(grunt) {
   grunt.loadTasks('tasks');
 
   // Default task.
-  grunt.registerTask('default', 'lint test');
+  grunt.registerTask('default', ['lint', 'combine:single', 'combine:multiple', 'test']);
 
 };

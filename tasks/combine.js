@@ -35,20 +35,23 @@ module.exports = function (grunt) {
      */
     grunt.registerMultiTask('combine', 'Combine files with token based search and replace functionality.', function () {
 
+        // set vars
+        done = this.async();
+        cwd = this.data.cwd;
+        output = this.data.output;
+        outputIsPath = output.charAt(output.length - 1) === '/';
+        tokens = this.data.tokens;
+
         // user input is an array - treat output as a path
-        if (Array.isArray(this.data.input)) {
+        if (_.isArray(this.data.input)) {
             input = this.data.input;
+            if(!outputIsPath) {
+                grunt.fail.warn('With multiple inputs the output must be a folder.');
+            }
         }
         else {
             input[0] = this.data.input;
         }
-
-        // set out defaults
-        done = this.async();
-        cwd = this.data.cwd;
-        output = this.data.output;
-        outputIsPath = output.charAt(output.length - 1) == '/';
-        tokens = this.data.tokens;
 
         // load the input file as text
         _.each(input, function (elem, index) {
@@ -75,7 +78,8 @@ module.exports = function (grunt) {
             });
         });
 
-        // complete the task
+        // timeout the task if we've taken too long
+        // @TODO: Should this be another prop that the dev can pass?
         timer = setTimeout(function () {
             grunt.fail.warn('The task has timed out.');
         }, 10000);
@@ -99,15 +103,15 @@ module.exports = function (grunt) {
                             grunt.fail.warn("There was an error processing the replacement '" + token.file + "' file.");
                         }
                         tokens[index].contents = data;
-                        processCompleteCallback(inputIndex);
+                        processTokenCompleteCallback();
                     });
 
                 } else if (token.string) {
                     // we didn't need to load a file
                     tokens[index].contents = token.string;
-                    processCompleteCallback(inputIndex);
+                    processTokenCompleteCallback();
                 } else {
-                    processCompleteCallback(inputIndex);
+                    processTokenCompleteCallback();
                 }
 
             }, this);
@@ -118,12 +122,12 @@ module.exports = function (grunt) {
          * combining of files takes place.
          *
          * @for grunt-combine
-         * @method processCompleteCallback
+         * @method processTokenCompleteCallback
          */
-        var processCompleteCallback = function (inputIndex) {
+        var processTokenCompleteCallback = function () {
             processed++;
             if (processed === tokens.length) {
-                findAndReplaceTokens(inputIndex);
+                findAndReplaceTokens();
             }
         };
 
@@ -134,21 +138,23 @@ module.exports = function (grunt) {
          * @for grunt-combine
          * @method findAndReplaceTokens
          */
-        var findAndReplaceTokens = function (inputIndex) {
-
-            // run through the document and replace anything we can in the input string
+        var findAndReplaceTokens = function () {
+          _.each(fileContents,function(fileContent,index){
             _.each(tokens, function (token) {
                 if (token.contents !== undefined) {
-                    var position = fileContents[inputIndex].search(token.token);
-                    var pre = fileContents[inputIndex].substr(0, position);
-                    var post = fileContents[inputIndex].substr(position + token.token.length, fileContents[inputIndex].length);
-                    fileContents[inputIndex] = pre + token.contents + post;
+                    var position = fileContent.search(token.token);
+                    if(position !== -1 ) { 
+                      var pre = fileContent.substr(0, position);
+                      var post = fileContent.substr(position + token.token.length, fileContent.length);
+                      fileContents[index] = pre + token.contents + post;
+                    }
                 } else {
                     grunt.log.writeln("Replacement failed for token '" + token.token + "'.");
                 }
             });
+            writeOutput(index);
+          });
 
-            writeOutput(inputIndex);
         };
 
         /**
@@ -158,21 +164,28 @@ module.exports = function (grunt) {
          * @method findAndReplaceTokens
          */
         var writeOutput = function (inputIndex) {
-            var path = outputIsPath ? output + input[inputIndex] : output;
+
+            var inputPath = input[inputIndex].split("/");
+            inputPath = inputPath[inputPath.length-1];
+            var path = outputIsPath ? output + inputPath : output;
+            
             // write the input string to the output file name
             grunt.log.writeln('Writing Output: ' + (path).cyan);
             fs.writeFile(path, fileContents[inputIndex], 'utf8', function (err) {
+              //console.log(fileContents[inputIndex]);
                 if (err) {
                     clearTimeout(timer);
                     grunt.fail.warn("Could not write output '" + output + "' file.");
                 }
-                var endtime = (new Date()).getTime();
-                grunt.log.writeln('Combine task completed in ' + ((endtime - starttime) / 1000) + ' seconds');
-                clearTimeout(timer);
                 processedFiles++;
                 if (processedFiles === fileContents.length) {
                     processedFiles = 0;
                     fileContents = [];
+
+                    var endtime = (new Date()).getTime();
+                    grunt.log.writeln('Combine task completed in ' + ((endtime - starttime) / 1000) + ' seconds');
+                    clearTimeout(timer);
+                    
                     done();
                 }
             });
