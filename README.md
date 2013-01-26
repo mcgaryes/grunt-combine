@@ -47,7 +47,3 @@ Token based search and replace functionality for [grunt](https://github.com/grun
 	* `token`  - *{ String }* The string that will be searched for in the file.
 	* `file`   - *{ String }* The file thats contents will replace the `token`
 	* `string` - *{ String }* The string that will replace the `token`
-
-### Example Grunt Files
-
-* [monkeybars](https://github.com/mcgaryes/monkeybars/blob/master/build/grunt.js)
