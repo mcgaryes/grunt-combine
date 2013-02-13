@@ -1,1 +1,1 @@
-The quick brown <%!c%> jumped over the lazy dog.
+The quick brown {{hairy}} walrus jumped over the lazy dog.

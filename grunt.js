@@ -35,23 +35,32 @@ module.exports = function(grunt) {
       globals: {}
     },
     combine: {
-        single: {
-            input: "test/inputs/input_a.txt",
-            output: "test/outputs/output_a.txt",
-            tokens: [{
-                token: "<%!a%>",
-                file: "test/files/fox.txt"
-            }]
-        },
-        multiple: {
-          input: ["test/inputs/input_b.txt","test/inputs/input_c.txt"],
-          output: "test/outputs/",
-          tokens: [{
-           token: "<%!b%>",
-           file: "test/files/fox.txt"
-         },{
-          token: "<%!c%>",
-          string: "hairy walrus"
+      single: {
+        input: "test/inputs/input_a.txt",
+        output: "test/outputs/output_a.txt",
+        tokens: [{
+          token: "<%!fox%>",
+          file: "test/files/fox.txt"
+        }, {
+          token: "{{quick}}",
+          file: "test/files/quick.html"
+        }, {
+          token: "{{dog}}",
+          file: "test/files/dog.css"
+        }, {
+          token: "{{brown}}",
+          string: "brown"
+        }]
+      },
+      multiple: {
+        input: ["test/inputs/input_b.txt", "test/inputs/input_c.txt"],
+        output: "test/outputs/",
+        tokens: [{
+          token: "{{fox}}",
+          file: "test/files/fox.txt"
+        }, {
+          token: "{{hairy}}",
+          string: "hairy"
         }]
       }
     }

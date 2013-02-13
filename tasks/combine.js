@@ -96,7 +96,7 @@ module.exports = function (grunt) {
 
                 // determain whether or not this is a file reference or a string
                 if (token.file) {
-
+                    
                     // read the file and reset replacement to what was loaded
                     fs.readFile(token.file, 'utf8', function (e, data) {
                         if (e) {
@@ -140,18 +140,20 @@ module.exports = function (grunt) {
          */
         var findAndReplaceTokens = function () {
           _.each(fileContents,function(fileContent,index){
+            var f = fileContent;
             _.each(tokens, function (token) {
                 if (token.contents !== undefined) {
-                    var position = fileContent.search(token.token);
-                    if(position !== -1 ) { 
-                      var pre = fileContent.substr(0, position);
-                      var post = fileContent.substr(position + token.token.length, fileContent.length);
-                      fileContents[index] = pre + token.contents + post;
+                    var position = f.search(token.token);
+                    if(position !== -1 ) {
+                      var pre = f.substr(0, position);
+                      var post = f.substr(position + token.token.length, f.length);
+                      f = pre + token.contents + post;
                     }
                 } else {
                     grunt.log.writeln("Replacement failed for token '" + token.token + "'.");
                 }
             });
+            fileContents[index] = f;
             writeOutput(index);
           });
 
