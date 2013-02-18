@@ -35,6 +35,14 @@ module.exports = function(grunt) {
       globals: {}
     },
     combine: {
+      identical: {
+        input: "test/inputs/input_d.txt",
+        output: "test/outputs/output_d.txt",
+        tokens: [{
+          token: "{{identical}}",
+          string: "bar"
+        }]
+      },
       single: {
         input: "test/inputs/input_a.txt",
         output: "test/outputs/output_a.txt",
@@ -70,6 +78,6 @@ module.exports = function(grunt) {
   grunt.loadTasks('tasks');
 
   // Default task.
-  grunt.registerTask('default', ['lint', 'combine:single', 'combine:multiple', 'test']);
+  grunt.registerTask('default', ['lint', 'combine:single', 'combine:multiple','combine:identical', 'test']);
 
 };
