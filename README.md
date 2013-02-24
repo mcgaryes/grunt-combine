@@ -1,3 +1,5 @@
+**\* I am no longer actively supporting this repository. Feel free to fork it if you like.**
+
 # grunt-combine
 
 Token based search and replace functionality for [grunt](https://github.com/gruntjs/grunt/).
